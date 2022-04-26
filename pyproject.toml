@@ -2,7 +2,7 @@
 name = "rnotify"
 version = "0.1.0"
 description = "Tracking file creation on Linux filesystem."
-authors = ["puzzlepeaches <null@localhost.local>"]
+authors = ["@edmcboy"]
 
 [tool.poetry.dependencies]
 python = "^3.9"

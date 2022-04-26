@@ -1,6 +1,6 @@
 # rnotify
 
-Notify Slack channel using webhook on creation of file. Very useful for tracking logfile creation by:
+During operations, testers will often stand up arbitrary tooling to perform long running tasks. This is great, but sort of difficult to track in the real world. This project tries to solve that problem using some really simple code. The tool rnotify in its current form allows the user to send notifications to a Slack channel using webhook following the creation of afile. Very useful for tracking logfile creation by:
 
 * Responder
 * ntlmrelayx
@@ -35,3 +35,13 @@ Options:
 ```
 
 Possible to call the utility with both `rnotify` and `rn`. The utility also allows you to specify a configuration file with `--config`.
+
+
+# Coming soon
+
+- File change tracking to notify on logfile changes. 
+- More notification providers (twilio, teams, discord)
+- Better notification structure
+- Publishing to PyPi
+- Process monitoring to notify on exit of arbitrary tools
+- More customization of the notfication message

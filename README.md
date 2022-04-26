@@ -11,7 +11,7 @@ Notify Slack channel using webhook on creation of file. Very useful for tracking
 Install with pipx for now using:
 
 ```
-pipx install git+https://github.com/puzzlepeaches/msprobe.git
+pipx install git+https://github.com/puzzlepeaches/rnotify.git
 ```
 
 

@@ -2,7 +2,8 @@ import pymsteams
 from discord_webhook import DiscordWebhook
 from notifiers import get_notifier
 
-class Notify():
+
+class Notify:
     """Base class for notifiers"""
 
     def __init__(self, webhook, notifier):
@@ -23,7 +24,7 @@ class Notify():
         else:
             raise Exception(f"Notifier {self.notifier} not supported")
 
-    #def notify(self, message, notify_handler):
+    # def notify(self, message, notify_handler):
     def notify(self, message):
         """Send notification"""
 
@@ -32,10 +33,6 @@ class Notify():
         elif self.notifier == "discord":
             notify_handler.execute(content=message)
         elif self.notifier == "slack":
-            #notify_handler.notifier(message)
-            print(self.webhook)
             self.handler.notify(message=message, webhook_url=self.webhook)
         else:
             raise Exception(f"Notifier {notifier} not supported")
-
-

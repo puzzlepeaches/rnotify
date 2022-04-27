@@ -80,6 +80,7 @@ def pid(target, notifier, webhook, interval):
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
 @click.argument("target", type=click.Path(exists=True))
 @click.option("-w", "--webhook", help="Webhook URL", required=True)
+@click.option("-d", "--daemon", help="Daemonize", is_flag=True)
 @click.option(
     "-n",
     "--notifier",
@@ -96,7 +97,7 @@ def pid(target, notifier, webhook, interval):
     show_default=True,
 )
 @click_config_file.configuration_option()
-def folder(target, notifier, webhook, interval):
+def folder(target, notifier, webhook, daemon, interval):
     """Notify on directory changes"""
 
     # Validating webhook
@@ -112,12 +113,20 @@ def folder(target, notifier, webhook, interval):
     observer = watch.observer()
     observer.start()
 
+    # Daemonize if set
+    if daemon:
+        ts = int(time.time())
+        pidfile = f"/tmp/{ts}.folder.notify.pid"
+        daemonized = Daemonized(pidfile)
+        daemonized.start()
+
     try:
         while True:
             time.sleep(interval)
     except KeyboardInterrupt:
         observer.stop()
     observer.join()
+
 
 if __name__ == "__main__":
     cli()

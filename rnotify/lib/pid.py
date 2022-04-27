@@ -1,2 +1,2 @@
-class Pid():
+class Pid:
     pass

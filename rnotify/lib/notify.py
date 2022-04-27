@@ -12,23 +12,29 @@ class Notify():
     def init_notifier(self):
         """Initialize notifier"""
         if self.notifier == "teams":
+            handler = get_notifier(self.notifier)
             return pymsteams.connectorcard(self.webhook)
         elif self.notifier == "discord":
+            handler = get_notifier(self.notifier)
             return DiscordWebhook(self.webhook)
         elif self.notifier == "slack":
+            handler = get_notifier(self.notifier)
             return get_notifier("slack")
         else:
             raise Exception(f"Notifier {self.notifier} not supported")
 
-    def notify(self, message, notify_handler, notifier):
+    #def notify(self, message, notify_handler):
+    def notify(self, message):
         """Send notification"""
 
-        if notifier == "teams":
+        if self.otifier == "teams":
             notify_handler.send(text=message)
-        elif notifier == "discord":
+        elif self.notifier == "discord":
             notify_handler.execute(content=message)
-        elif notifier == "slack":
-            notify_handler.notify(message)
+        elif self.notifier == "slack":
+            #notify_handler.notifier(message)
+            print(self.webhook)
+            self.handler.notify(message=message, webhook_url=self.webhook)
         else:
             raise Exception(f"Notifier {notifier} not supported")
 

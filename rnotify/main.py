@@ -1,3 +1,4 @@
+import time
 import click
 import click_config_file
 
@@ -107,9 +108,16 @@ def folder(target, notifier, webhook, interval):
     notify_handler = notify.init_notifier()
 
     # Initializing folder watcher
-    watch = Folder(target, notify_handler, interval)
-    watch.observer()
+    watch = Folder(target, notify_handler, interval, webhook)
+    observer = watch.observer()
+    observer.start()
 
+    try:
+        while True:
+            time.sleep(interval)
+    except KeyboardInterrupt:
+        observer.stop()
+    observer.join()
 
 if __name__ == "__main__":
     cli()

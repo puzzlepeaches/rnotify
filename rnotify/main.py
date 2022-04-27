@@ -1,9 +1,11 @@
 import click
 import click_config_file
-from lib.notify import Notify
-from lib.folder import Folder
-from lib.file import File 
-from lib.pid import Pid 
+
+# from lib.pid import Pid
+# from lib.file import File
+from .lib.utils import *
+from .lib.notify import Notify
+from .lib.folder import Folder
 
 CONTEXT_SETTINGS = dict(help_option_names=["-h", "--help", "help"])
 
@@ -13,8 +15,10 @@ def cli():
     """Notify on arbitrary filesystem events and process state changes."""
     pass
 
+
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
 @click.argument("target", type=click.Path(exists=True))
+@click.option("-w", "--webhook", help="Webhook URL", required=True)
 @click.option(
     "-n",
     "--notifier",
@@ -22,16 +26,29 @@ def cli():
     help="Notification provider.",
     required=True,
 )
-@click.option("-w", "--webhook", help="Webhook URL", required=True)
-@click.option("-s", "--sleep", "interval", help="Sleep time between checks", default=5)
+@click.option(
+    "-s",
+    "--sleep",
+    "interval",
+    help="Sleep time between checks",
+    default=5,
+    show_default=True,
+)
+@click_config_file.configuration_option()
 def file(target, notifier, webhook, interval):
     """Notify on file changes"""
 
+    # Validating webhook
+    if validate_url(webhook):
+        pass
+
+    # Initializing notification handler
     notif_handler = Notify(webhook, notifier)
 
 
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
-@click.argument("target")
+@click.argument("target", type=int)
+@click.option("-w", "--webhook", help="Webhook URL", required=True)
 @click.option(
     "-n",
     "--notifier",
@@ -39,16 +56,29 @@ def file(target, notifier, webhook, interval):
     help="Notification provider.",
     required=True,
 )
-@click.option("-w", "--webhook", help="Webhook URL", required=True)
-@click.option("-s", "--sleep", "interval", help="Sleep time between checks", default=5)
+@click.option(
+    "-s",
+    "--sleep",
+    "interval",
+    help="Sleep time between checks",
+    default=5,
+    show_default=True,
+)
+@click_config_file.configuration_option()
 def pid(target, notifier, webhook, interval):
     """Notify on process changes"""
 
+    # Validating webhook
+    if validate_url(webhook):
+        pass
+
+    # Initializing notification handler
     notif_handler = Notify(webhook, notifier)
 
 
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
 @click.argument("target", type=click.Path(exists=True))
+@click.option("-w", "--webhook", help="Webhook URL", required=True)
 @click.option(
     "-n",
     "--notifier",
@@ -56,12 +86,29 @@ def pid(target, notifier, webhook, interval):
     help="Notification provider.",
     required=True,
 )
-@click.option("-w", "--webhook", help="Webhook URL", required=True)
-@click.option("-s", "--sleep", "interval", help="Sleep time between checks", default=5)
+@click.option(
+    "-s",
+    "--sleep",
+    "interval",
+    help="Sleep time between checks",
+    default=5,
+    show_default=True,
+)
+@click_config_file.configuration_option()
 def folder(target, notifier, webhook, interval):
     """Notify on directory changes"""
 
-    notif_handler = Notify(webhook, notifier)
+    # Validating webhook
+    if validate_url(webhook):
+        pass
+
+    # Initializing notification handler
+    notify = Notify(webhook, notifier)
+    notify_handler = notify.init_notifier()
+
+    # Initializing folder watcher
+    watch = Folder(target, notify_handler, interval)
+    watch.observer()
 
 
 if __name__ == "__main__":

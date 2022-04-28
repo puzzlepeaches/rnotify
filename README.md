@@ -1,47 +1,155 @@
+
 # rnotify
 
-During operations, testers will often stand up arbitrary tooling to perform long running tasks. This is great, but sort of difficult to track in the real world. This project tries to solve that problem using some really simple code. The tool rnotify in its current form allows the user to send notifications to a Slack channel using webhook following the creation of afile. Very useful for tracking logfile creation by:
 
-* Responder
-* ntlmrelayx
+### Table of Contents
 
+- [About](#about)
+- [Installation](#installation)
+- [Usage](#usage)
 
-# Install
+---
 
-Install with pipx for now using:
+## About
+
+Operators use several tools to perform internal security assessments. These tools can be difficult to track remotely and have output that is time sensitive. The tool rnotify tries to solve this problem. Some example use cases are listed below:
+
+- Monitor hashcat process and notify when cracking job is completed 
+- Monitor folder for hashes captured using Responder
+- Monitor and notify on computer account creation when using mitm6 and ntlmrelayx
+- Notify when password spraying job completes
+
+Following a change to the monitoried object, the tool can then notify using a webhook for the following communication platforms:
+
+* Slack
+* MS Teams
+* Discord
+
+### Installation
+
+The project can be installed currently using pipx while pointing at this repository directly:
 
 ```
 pipx install git+https://github.com/puzzlepeaches/rnotify.git
 ```
 
+## Usage
 
-# Usage
+The tool is only useable on Unix based operating systems. The utility can be called using the command `rnotify` or `rn` and can monitor:
 
-Help menu below:
+* File changes
+* New files added to a folder
+* Process exit (PID)
 
 ```
-rn -h
+Usage: rn [OPTIONS] COMMAND [ARGS]...
 
-Usage: rn [OPTIONS]
-
-  Notify on new files in a directory
+  Notify on arbitrary filesystem events and process state changes.
 
 Options:
-  -d, --directory TEXT  Directory to watch.
-  -w, --webhook TEXT    Slack Webhook URL.
-  -s, --sleep INTEGER   Sleep time between checks
-  --config FILE         Read configuration from FILE.
-  -h, --help            Show this message and exit.
+  --help  Show this message and exit.
+
+Commands:
+  file    Notify on file changes
+  folder  Notify on directory changes
+  pid     Notify on process changes
 ```
 
-Possible to call the utility with both `rnotify` and `rn`. The utility also allows you to specify a configuration file with `--config`.
+All modules require the specificiation of the following options:
 
+* Webhook URL used for notifications
+* Notification provider associated with the provided webhook
+* Target to monitor (file, folder, pid)
 
-# Coming soon
+All modules optionally allow the specification of the following options:
 
-- File change tracking to notify on logfile changes. 
-- More notification providers (twilio, teams, discord)
-- Better notification structure
-- Publishing to PyPi
-- Process monitoring to notify on exit of arbitrary tools
-- More customization of the notfication message
+* Daemonization of the utility to run rnotify in the background
+* Sleep interval used by tool when checking for changes
+* Configuration file in the format shown below
+
+```
+webhook = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
+target = '/tmp/screen.log'
+notifier = 'slack'
+create_daemon = 'True'
+```
+
+### File Monitoring
+
+File changes can be monitored using the `file` subcommand:
+
+```
+Usage: rn file [OPTIONS] TARGET
+
+  Notify on file changes
+
+Options:
+  -w, --webhook TEXT              Webhook URL  [required]
+  -n, --notifier [teams|slack|discord]
+                                  Notification provider.  [required]
+  -f, --filter TEXT               Filter changes by string.
+  -s, --sleep INTEGER             Sleep time between checks  [default: 5]
+  -d, --daemon                    Daemonize the utility
+  --config FILE                   Read configuration from FILE.
+  -h, --help                      Show this message and exit.
+ ```
+ Changes to logfiles can be filtered using the `-f` flag.
+ 
+### Folder Monitoring
+
+Folder changes can be monitored using the `folder` subcommand:
+
+```
+Usage: rn folder [OPTIONS] TARGET
+
+  Notify on directory changes
+
+Options:
+  -w, --webhook TEXT              Webhook URL  [required]
+  -d, --daemon                    Daemonize the utility
+  -n, --notifier [teams|slack|discord]
+                                  Notification provider.  [required]
+  -s, --sleep INTEGER             Sleep time between checks  [default: 5]
+  --config FILE                   Read configuration from FILE.
+  -h, --help                      Show this message and exit.
+ ```
+ 
+### PID Monitoring
+
+Process exits can be monitored using the `pid` subcommand:
+ 
+```
+Usage: rn pid [OPTIONS] TARGET
+
+  Notify on process changes
+
+Options:
+  -w, --webhook TEXT              Webhook URL  [required]
+  -n, --notifier [teams|slack|discord]
+                                  Notification provider.  [required]
+  -s, --sleep INTEGER             Sleep time between checks  [default: 5]
+  -d, --daemon                    Daemonize the utility
+  --config FILE                   Read configuration from FILE.
+  -h, --help                      Show this message and exit.
+```
+
+### Usage examples
+
+Watch Responder logs folder in the foreground:
+
+```
+rn folder /opt/Responder/logs -w https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX -n slack
+```
+
+Watch for hashcat process to stop in the background:
+
+```
+rn pid 54782 -w https://hooks.teams.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX -n teams -d
+```
+
+Watch for changes to gnu screen log with a filter in the foreground:
+
+```
+rn file /top/screen.log -f Account -w https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX -n slack 
+```
+

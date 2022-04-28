@@ -2,7 +2,7 @@ from watchfiles import watch
 from pathlib import Path
 
 
-class File():
+class File:
     """Watch for file changes"""
 
     def __init__(self, target, notify_handler, notifier, notify, filter):
@@ -24,7 +24,7 @@ class File():
             for change in changes:
 
                 # Getting latest change
-                with open(self.target, 'r') as f:
+                with open(self.target, "r") as f:
                     last_line = f.readlines()[-1]
 
                 # Getting filename

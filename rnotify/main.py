@@ -1,5 +1,7 @@
+import os
 import time
 import click
+import daemon
 import psutil
 import click_config_file
 
@@ -28,7 +30,7 @@ def cli():
     help="Notification provider.",
     required=True,
 )
-@click.option('-f', '--filter', help='Filter changes by string.', required=False)
+@click.option("-f", "--filter", help="Filter changes by string.", required=False)
 @click.option(
     "-s",
     "--sleep",
@@ -37,8 +39,11 @@ def cli():
     default=5,
     show_default=True,
 )
+@click.option(
+    "-d", "--daemon", "create_daemon", help="Daemonize the utility", is_flag=True
+)
 @click_config_file.configuration_option()
-def file(target, notifier, webhook, interval, filter):
+def file(target, notifier, webhook, create_daemon, interval, filter):
     """Notify on file changes"""
 
     # Validating webhook
@@ -51,7 +56,16 @@ def file(target, notifier, webhook, interval, filter):
     # Initializing file watcher
     watch = File(target, notify_handler, notifier, notify, filter)
 
-    while True:
+    # Daemonize if set
+    if create_daemon:
+        with daemon.DaemonContext(detach_process=True):
+            while True:
+                try:
+                    watch.observer()
+                    time.sleep(interval)
+                except KeyboardInterrupt:
+                    exit(1)
+    else:
         try:
             watch.observer()
             time.sleep(interval)
@@ -77,8 +91,11 @@ def file(target, notifier, webhook, interval, filter):
     default=5,
     show_default=True,
 )
+@click.option(
+    "-d", "--daemon", "create_daemon", help="Daemonize the utility", is_flag=True
+)
 @click_config_file.configuration_option()
-def pid(target, notifier, webhook, interval):
+def pid(target, notifier, webhook, create_daemon, interval):
     """Notify on process changes"""
 
     # Validating webhook
@@ -98,25 +115,42 @@ def pid(target, notifier, webhook, interval):
         click.echo(f"Process {target} does not exist.")
         exit(1)
 
-    # Starting our observer
-    while True:
-        try:
-            status = pid.observer()
-            if not status:
-                message = f"Process {target} has stopped running."
-                notify.notified(message, notify_handler, notifier)
-                exit(0)
-            else:
-                continue
-            time.sleep(interval)
-        except KeyboardInterrupt:
-            exit(1)
+    # Daemonize if set
+    if create_daemon:
+        with daemon.DaemonContext(detach_process=True):
+            while True:
+                try:
+                    status = pid.observer()
+                    if not status:
+                        message = f"Process {target} has stopped running."
+                        notify.notified(message, notify_handler, notifier)
+                        exit(0)
+                    else:
+                        continue
+                    time.sleep(interval)
+                except KeyboardInterrupt:
+                    exit(1)
+    else:
+        while True:
+            try:
+                status = pid.observer()
+                if not status:
+                    message = f"Process {target} has stopped running."
+                    notify.notified(message, notify_handler, notifier)
+                    exit(0)
+                else:
+                    continue
+                time.sleep(interval)
+            except KeyboardInterrupt:
+                exit(1)
 
 
 @cli.command(no_args_is_help=False, context_settings=CONTEXT_SETTINGS)
 @click.argument("target", type=click.Path(exists=True))
 @click.option("-w", "--webhook", help="Webhook URL", required=True)
-@click.option("-d", "--daemon", help="Daemonize", is_flag=True)
+@click.option(
+    "-d", "--daemon", "create_daemon", help="Daemonize the utility", is_flag=True
+)
 @click.option(
     "-n",
     "--notifier",
@@ -133,7 +167,7 @@ def pid(target, notifier, webhook, interval):
     show_default=True,
 )
 @click_config_file.configuration_option()
-def folder(target, notifier, webhook, daemon, interval):
+def folder(target, notifier, webhook, create_daemon, interval):
     """Notify on directory changes"""
 
     # Validating webhook
@@ -149,18 +183,22 @@ def folder(target, notifier, webhook, daemon, interval):
     observer.start()
 
     # Daemonize if set
-    # if daemon:
-    #    ts = int(time.time())
-    #    pidfile = f"/tmp/{ts}.folder.notify.pid"
-    #    daemonized = Daemonized(pidfile)
-    #    daemonized.start()
-
-    try:
-        while true:
-            time.sleep(interval)
-    except keyboardinterrupt:
-        observer.stop()
-    observer.join()
+    if create_daemon:
+        with daemon.DaemonContext(detach_process=True):
+            while True:
+                try:
+                    time.sleep(interval)
+                except KeyboardInterrupt:
+                    observer.stop()
+                    exit(1)
+                observer.join()
+    else:
+        try:
+            while True:
+                time.sleep(interval)
+        except KeyboardInterrupt:
+            observer.stop()
+        observer.join()
 
 
 if __name__ == "__main__":

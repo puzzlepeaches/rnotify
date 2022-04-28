@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "rnotify"
 version = "0.1.0"
-description = "Tracking file creation on Linux filesystem."
+description = "Tracking system changes on Unix hosts and letting you know about it."
 authors = ["Nicholas A <@edmcboy>"]
 
 [tool.poetry.dependencies]

@@ -24,15 +24,14 @@ class Notify:
         else:
             raise Exception(f"Notifier {self.notifier} not supported")
 
-    # def notify(self, message, notify_handler):
-    def notify(self, message):
+    def notified(self, message, notify_handler, notifier):
         """Send notification"""
 
-        if self.otifier == "teams":
+        if notifier == "teams":
             notify_handler.send(text=message)
-        elif self.notifier == "discord":
+        elif notifier == "discord":
             notify_handler.execute(content=message)
-        elif self.notifier == "slack":
-            self.handler.notify(message=message, webhook_url=self.webhook)
+        elif notifier == "slack":
+            notify_handler.notify(message=message, webhook_url=self.webhook)
         else:
             raise Exception(f"Notifier {notifier} not supported")

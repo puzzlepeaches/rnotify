@@ -1,8 +1,14 @@
 [tool.poetry]
 name = "rnotify"
-version = "0.1.0"
+version = "0.1.1"
 description = "Tracking system changes on Unix hosts and letting you know about it."
-authors = ["Nicholas A <@edmcboy>"]
+authors = ["Nicholas A <nicholasanastasirepair@gmail.com>"]
+readme = "README.md"
+license = "BSD 3-Clause"
+homepage = "https://github.com/puzzlpeaches/rnotify"
+repository = "https://github.com/puzzlepeaches/rnotify"
+include = ["LICENSE"]
+
 
 [tool.poetry.dependencies]
 python = "^3.9"

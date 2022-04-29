@@ -27,10 +27,10 @@ Following a change to the monitoried object, the tool can then notify using a we
 
 ### Installation
 
-The project can be installed currently using pipx while pointing at this repository directly:
+The project can be installed using pipx: 
 
 ```
-pipx install git+https://github.com/puzzlepeaches/rnotify.git
+pipx install rnotify 
 ```
 
 ## Usage
